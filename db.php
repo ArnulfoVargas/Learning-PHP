@@ -1,4 +1,7 @@
-<?php 
+<?php
+
+    $db = isset($db) ? $db : new DB();
+
    class DB {
         private $db_host = "localhost";
         private $db_user = "root";
@@ -6,6 +9,7 @@
         private $db_name = "test";
         private $conn = null;
         public $err = null;
+        
         
         public function __construct(?string $db_name = "test",
                                     ?string $db_host = "localhost", 
@@ -18,7 +22,6 @@
 
             $this->try_db_connection();
         } 
-
         private function try_db_connection() {
             try {
                 $this->conn = mysqli_connect($this->db_host, 
@@ -59,12 +62,11 @@
             } catch (Exception $e) {
                 $this->err = $e->getMessage();
             }
-            mysqli_close($this->conn);
         }
 
         public function get_users() : array|null {
             $query = "SELECT * FROM users
-            ORDER BY `id` DESC;";
+            ORDER BY `id` ASC;";
 
             $result = array();
             $rows = mysqli_query($this->conn, $query);
@@ -89,5 +91,45 @@
             }
 
             return null;
+        }
+
+        public function update_user($id, $username) : bool {
+
+            $valid = $this->get_user($id);
+            if (empty($valid)) {
+                return false;
+            }
+
+            $query = "UPDATE users
+            SET username = '$username'
+            WHERE id = $id;";
+
+            try {
+                mysqli_query($this->conn, $query);
+                return true;
+            } catch (Exception $e) {
+                $this->err = $e->getMessage();
+                return false;
+            }
+        }
+
+        public function delete_user($id) : bool {
+            $valid = $this->get_user($id);
+            if (empty($valid)) {
+                return false;
+            }
+
+            $query = "DELETE FROM users WHERE id = $id";
+            try {
+                mysqli_query($this->conn, $query);
+                return true;
+            } catch (Exception $e) {
+                $this->err = $e->getMessage();
+                return false;
+            }
+        }
+
+        public function close_db() {
+            mysqli_close($this->conn);
         }
     }

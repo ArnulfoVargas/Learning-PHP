@@ -7,24 +7,30 @@
     <title>PHP Course</title>
 </head>
 <body>
-    <form action="index.php" method="post">
+    <form action="<?php htmlspecialchars($_SERVER['PHP_SELF']) ?>" method="post">
         <label for="user">Username:</label><br>
         <input type="text" name="user"> <br>
         <label for="password">Password:</label> <br>
         <input type="password" name="password" /><br>
-        <input type="submit" value="Log In">
+        <input type="submit" name="login" value="Log In">
     </form>
 
     <?php
         include("db.php");
 
-        $db = new DB();
         if (isset($db->err)) {
             echo "Couldnt Connect to DB <br>";
         } else {
             echo "Connection Succesfully <br>";
         }
     ?>
+
+    <script>
+        // Prevents form resubmitions on refresh
+        if ( window.history.replaceState ) {
+            window.history.replaceState( null, null, window.location.href );
+        }
+    </script>
 </body>
 </html>
 
@@ -35,21 +41,25 @@
                     : "";
     $can_store = true;
 
-    if (empty($user)) {
-        echo "<p>Type a valid Username</p>";
-        $can_store = false;
-    }
-    if (empty($password) || strlen($password) <= 0) {
-        echo "<p>Type a valid Password</p>";
-        $can_store = false;
-    }
-
-    if ($can_store) {
-        $db->insert_user($user, $password);
-        if (empty($db->err)) {
-            echo "Unexpected Error";
+    if (isset($_POST["login"])) {
+        if (empty($user)) {
+            echo "<p>Type a valid Username</p>";
+            $can_store = false;
+        }
+        if (empty($password) || strlen($password) <= 0) {
+            echo "<p>Type a valid Password</p>";
+            $can_store = false;
         }
 
-        header("Location: index.php");
+        if ($can_store) {
+            $db->insert_user($user, $password);
+            if (empty($db->err)) {
+                echo "Unexpected Error";
+            }
+        }
     }
+?>
+
+<?php 
+    $db->close_db();
 ?>
