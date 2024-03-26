@@ -29,6 +29,7 @@
                                              $this->db_password, 
                                              $this->db_name);
                 $this->create_users_db($this->conn);
+                $this->create_admin($this->conn);
                 $this->err = null;
             } catch (Exception $e) {
                 $this->err = $e->getMessage();
@@ -44,10 +45,19 @@
                 PRIMARY KEY (`id`),
                 UNIQUE (`username`)
             )
+
             ENGINE = InnoDB;
             ";
 
             $connection->query($create_table_query);
+        }
+
+        private function create_admin(mysqli &$connection) {
+            $get_user = "SELECT id FROM users LIMIT 1;";
+            $result = $connection->query($get_user);
+            if ($result->num_rows < 1) {
+                $this->insert_user("admin", "admin123");
+            }
         }
 
         public function insert_user(string $username, string $password){
